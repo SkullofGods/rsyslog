@@ -171,6 +171,12 @@ endif
 define RSYSLOG_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D package/rsyslog/rsyslog.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/rsyslog.service
+	# [WBOS] Mask journald's /dev/log compat socket so rsyslog can own /dev/log
+	# directly. Without this, journald owns /dev/log and only forwards a
+	# re-framed copy to rsyslog, losing the daemons' RFC 5424 framing / app-name.
+	mkdir -p $(TARGET_DIR)/etc/systemd/system
+	ln -sf /dev/null \
+		$(TARGET_DIR)/etc/systemd/system/systemd-journald-dev-log.socket
 endef
 
 define RSYSLOG_INSTALL_INIT_SYSV

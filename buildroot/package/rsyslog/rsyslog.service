@@ -1,10 +1,16 @@
 [Unit]
 Description=System Logging Service
-Requires=syslog.socket
 Documentation=man:rsyslogd(8)
 Documentation=https://www.rsyslog.com/doc/
+# WBOS: rsyslog owns /dev/log directly (this package masks journald's
+# systemd-journald-dev-log.socket) so the daemons' RFC 5424 frames reach
+# rsyslog intact instead of being re-framed by journald. Hence NO
+# 'Requires=syslog.socket' — imuxsock binds /dev/log itself.
+After=systemd-journald.service
 
 [Service]
+# Type=notify needs rsyslog built with systemd support (sd_notify), which is
+# enabled when BR2_INIT_SYSTEMD + BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS are set.
 Type=notify
 ExecStart=/usr/sbin/rsyslogd -n -iNONE
 StandardOutput=null
