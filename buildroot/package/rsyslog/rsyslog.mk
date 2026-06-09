@@ -23,14 +23,9 @@ RSYSLOG_IGNORE_CVES += CVE-2015-3243
 RSYSLOG_DEPENDENCIES = zlib libestr liblogging libfastjson host-pkgconf
 RSYSLOG_CONF_ENV = ac_cv_prog_cc_c99='-std=c99'
 
-# [WBOS] mmpstrucdata is required by the WBOS rsyslog.d drop-in (it explodes the
-# [wbos@<PEN> ...] structured-data element). It is upstream-default OFF, so we
-# enable it in the base options regardless of the EXTRA_PLUGINS knob below.
-RSYSLOG_CONF_OPTS = --enable-mmpstrucdata
-
 ifeq ($(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),y)
 RSYSLOG_PLUGINS = imdiag imfile impstats imptcp \
-	mmanon mmaudit mmfields mmjsonparse mmsequence mmutf8fix \
+	mmanon mmaudit mmfields mmjsonparse mmpstrucdata mmsequence mmutf8fix \
 	mail omprog omruleset omstdout omuxsock \
 	pmaixforwardedfrom pmciscoios pmcisconames pmlastmsg pmsnare
 endif
@@ -40,7 +35,7 @@ RSYSLOG_DEPENDENCIES += librelp
 RSYSLOG_PLUGINS += relp
 endif
 
-RSYSLOG_CONF_OPTS += --disable-generate-man-pages \
+RSYSLOG_CONF_OPTS = --disable-generate-man-pages \
 	$(foreach x,$(call qstrip,$(RSYSLOG_PLUGINS)),--enable-$(x))
 
 # Disable items requiring lognorm

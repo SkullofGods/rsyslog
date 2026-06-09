@@ -9,11 +9,11 @@ config BR2_PACKAGE_RSYSLOG
 	select BR2_PACKAGE_ZLIB
 	help
 	  Rsyslog is an enhanced multi-threaded syslogd. Built from the WBOS
-	  fork with the WBOS RFC 5424 receiver config installed and the
-	  mmpstrucdata module enabled, so the structured log stream from the
-	  WBOS daemons (asic_manager, config_manager, route_manager,
-	  route_server, flow_manager) is received on /dev/log and routed into
-	  /var/log/wbos/.
+	  fork with the WBOS RFC 5424 receiver config installed, so the
+	  structured log stream from the WBOS daemons (asic_manager,
+	  config_manager, route_manager, route_server, flow_manager) is
+	  received on /dev/log and routed into /var/log/wbos/. Uses only stock
+	  modules (imuxsock, imklog, the built-in rfc5424 parser).
 
 	  https://www.rsyslog.com/
 
@@ -23,9 +23,9 @@ config BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS
 	bool "extra plugins"
 	help
 	  Build and install the full set of optional input/output/parser/
-	  modify plugins (imfile, impstats, omprog, mmjsonparse, ...) and the
-	  dependency-gated ones (gnutls, hiredis, mysql, ...). The WBOS log
-	  pipeline does not require these; mmpstrucdata is enabled regardless.
+	  modify plugins (imfile, impstats, omprog, mmjsonparse, mmpstrucdata,
+	  ...) and the dependency-gated ones (gnutls, hiredis, mysql, ...). The
+	  WBOS log pipeline does not require any of these.
 
 endif
 
