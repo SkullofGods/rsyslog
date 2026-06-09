@@ -4,7 +4,7 @@
 
 export NUMMESSAGES=100
 export NUMMESSAGESFULL=$NUMMESSAGES
-export WAITTIMEOUT=10
+export WAITTIMEOUT=20
 
 # REQUIRES EXTERNAL ENVIRONMENT VARIABLES
 if [[ -z "${AZURE_HOST}" ]]; then
@@ -80,7 +80,7 @@ injectmsg 1 $NUMMESSAGES
 
 wait_file_lines $RSYSLOG_OUT_LOG $NUMMESSAGESFULL 100
 
-# experimental: wait until kcat receives everything
+# experimental: wait until kafkacat receives everything
 timeoutend=$WAITTIMEOUT
 timecounter=0
 

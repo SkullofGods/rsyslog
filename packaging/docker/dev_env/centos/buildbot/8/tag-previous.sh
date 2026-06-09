@@ -1,2 +1,0 @@
-docker tag rsyslog/rsyslog_dev_buildbot_centos:8 rsyslog/rsyslog_dev_buildbot_centos:8_previous
-docker push rsyslog/rsyslog_dev_buildbot_centos:8_previous

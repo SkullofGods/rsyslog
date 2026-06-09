@@ -4,7 +4,6 @@ pkglib_LTLIBRARIES =
 pkgconfigdir = $(libdir)/pkgconfig
 
 EXTRA_DIST = \
-    .gitignore \
 	README.md \
 	platform/README \
 	platform/freebsd/rsyslogd \
@@ -19,7 +18,7 @@ EXTRA_DIST = \
 	contrib/gnutls/cert.pem \
 	contrib/gnutls/key.pem
 
-SUBDIRS = doc compat runtime grammar . plugins/immark plugins/imuxsock plugins/imtcp plugins/imudp plugins/omtesting
+SUBDIRS = compat runtime grammar . plugins/immark plugins/imuxsock plugins/imtcp plugins/imudp plugins/omtesting
 # external plugin driver is always enabled (core component)
 SUBDIRS += plugins/mmexternal
 
@@ -73,10 +72,6 @@ endif
 
 if ENABLE_OMSTDOUT
 SUBDIRS += plugins/omstdout
-endif
-
-if ENABLE_OMSENDERTRACK
-SUBDIRS += plugins/omsendertrack
 endif
 
 if ENABLE_PMCISCONAMES
@@ -147,10 +142,6 @@ if ENABLE_OMHDFS
 SUBDIRS += plugins/omhdfs
 endif
 
-if ENABLE_OMOTEL
-SUBDIRS += plugins/omotel
-endif
-
 if ENABLE_OMJOURNAL
 SUBDIRS += plugins/omjournal
 endif
@@ -211,10 +202,6 @@ if ENABLE_FMUNFLATTEN
 SUBDIRS += contrib/fmunflatten
 endif
 
-if ENABLE_FMPCRE
-SUBDIRS += plugins/fmpcre
-endif
-
 if ENABLE_FFAUP
 SUBDIRS += contrib/ffaup
 endif
@@ -251,16 +238,8 @@ if ENABLE_MMNORMALIZE
 SUBDIRS += plugins/mmnormalize
 endif
 
-if ENABLE_MMLEEFPARSE
-SUBDIRS += plugins/mmleefparse
-endif
-
 if ENABLE_MMJSONPARSE
 SUBDIRS += plugins/mmjsonparse
-endif
-
-if ENABLE_MMJSONTRANSFORM
-SUBDIRS += plugins/mmjsontransform
 endif
 
 if ENABLE_MMGROK
@@ -307,16 +286,8 @@ if ENABLE_MMPSTRUCDATA
 SUBDIRS += plugins/mmpstrucdata
 endif
 
-if ENABLE_MMAITAG
-SUBDIRS += plugins/mmaitag
-endif
-
 if ENABLE_MMRFC5424ADDHMAC
 SUBDIRS += contrib/mmrfc5424addhmac
-endif
-
-if ENABLE_MMSNAREPARSE
-SUBDIRS += plugins/mmsnareparse
 endif
 
 # omhttpfs
@@ -396,7 +367,6 @@ DISTCHECK_CONFIGURE_FLAGS+= \
 	--enable-silent-rules \
 	--enable-rsyslogd \
 	--enable-omstdout \
-	--enable-omsendertrack \
 	--enable-imdiag \
 	--enable-testbench \
 	--enable-valgrind
@@ -534,10 +504,6 @@ if ENABLE_OPENSSL
 DISTCHECK_CONFIGURE_FLAGS+= --enable-openssl
 endif
 
-if ENABLE_WOLFSSL
-DISTCHECK_CONFIGURE_FLAGS+= --enable-wolfssl
-endif
-
 if ENABLE_MYSQL
 DISTCHECK_CONFIGURE_FLAGS+= --enable-mysql
 endif
@@ -666,45 +632,3 @@ dist-hook:
 	$(AM_V_GEN)echo $(VERSION) > $(distdir)/.tarball-version
 
 ACLOCAL_AMFLAGS = -I m4
-
-COVERAGE_INFO = $(top_builddir)/coverage.info
-COVERAGE_DIR =  coverage
-
-LCOV_FLAGS =	--capture \
-	--config-file "$(top_srcdir)/lcovrc" \
-	--directory "$(abs_top_builddir)" \
-	--ignore-errors mismatch \
-	--output-file $(COVERAGE_INFO)
-
-GENHTML_FLAGS = --legend \
-	--title "$(PACKAGE_NAME)-$(PACKAGE_VERSION) Code Coverage" \
-	--output-directory $(top_builddir)/$(COVERAGE_DIR)
-
-check-coverage: reset-coverage-stats
-if ENABLE_COVERAGE
-	$(MAKE) check || true
-	$(MAKE) coverage
-
-reset-coverage-stats:
-	$(LCOV) --zerocounters --directory "$(abs_top_builddir)"
-
-coverage: clean-coverage-local distclean-coverage-local
-	@echo "Aggregating coverage files and generating HTML summary..."
-	$(LCOV) $(LCOV_FLAGS) > /dev/null
-	$(GENHTML) $(GENHTML_FLAGS) $(COVERAGE_INFO) > /dev/null
-	@echo "Coverage HTML page result file://$(abs_builddir)/$(COVERAGE_DIR)/index.html"
-else
-	@echo "Code coverage not enabled; to enable:"
-	@echo
-	@echo "    ./configure --enable-coverage"
-endif
-
-clean-local: clean-coverage-local
-
-clean-coverage-local:
-	rm -f $(COVERAGE_INFO)
-
-distclean-local: distclean-coverage-local
-
-distclean-coverage-local:
-	rm -rf $(COVERAGE_DIR)

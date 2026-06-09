@@ -1,2 +1,0 @@
-docker tag rsyslog/rsyslog_dev_base_centos:7 rsyslog/rsyslog_dev_base_centos:7_previous
-docker push rsyslog/rsyslog_dev_base_centos:7_previous

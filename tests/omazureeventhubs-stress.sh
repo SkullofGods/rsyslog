@@ -91,7 +91,7 @@ startup
 echo Inject messages into rsyslog sender instance  
 injectmsg 1 $NUMMESSAGES
 
-# experimental: wait until kcat receives everything
+# experimental: wait until kafkacat receives everything
 timeoutend=$WAITTIMEOUT
 timecounter=0
 

@@ -165,7 +165,7 @@ endif
 # basic network support, needed for rsyslog startup (e.g. our own system name)
 #
 pkglib_LTLIBRARIES += lmnet.la
-lmnet_la_SOURCES = net.c net.h netns_socket.c netns_socket.h
+lmnet_la_SOURCES = net.c net.h
 lmnet_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS)
 lmnet_la_LDFLAGS = -module -avoid-version ../compat/compat_la-getifaddrs.lo
 lmnet_la_LIBADD =
@@ -179,7 +179,9 @@ endif
 
 # network stream master class and stream factory
 lmnetstrms_la_SOURCES = netstrms.c netstrms.h \
-			netstrm.c netstrm.h
+			netstrm.c netstrm.h \
+			nssel.c nssel.h \
+			nspoll.c nspoll.h
 lmnetstrms_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS)
 lmnetstrms_la_LDFLAGS = -module -avoid-version
 lmnetstrms_la_LIBADD =
@@ -193,7 +195,9 @@ endif
 
 # plain tcp driver - main driver
 pkglib_LTLIBRARIES += lmnsd_ptcp.la
-lmnsd_ptcp_la_SOURCES = nsd_ptcp.c nsd_ptcp.h
+lmnsd_ptcp_la_SOURCES = nsd_ptcp.c nsd_ptcp.h \
+		  	nsdsel_ptcp.c nsdsel_ptcp.h \
+			nsdpoll_ptcp.c nsdpoll_ptcp.h
 lmnsd_ptcp_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS)
 lmnsd_ptcp_la_LDFLAGS = -module -avoid-version
 lmnsd_ptcp_la_LIBADD =
@@ -208,20 +212,14 @@ endif # if ENABLE_INET
 #
 # openssl base and netstream driver
 #
-if ENABLE_OSSL
+if ENABLE_OPENSSL
 # noinst_LTLIBRARIES += lmnsd_ossl.la
 pkglib_LTLIBRARIES += lmnsd_ossl.la
-lmnsd_ossl_la_SOURCES = net_ossl.c net_ossl.h nsd_ossl.c nsd_ossl.h
-lmnsd_ossl_la_LDFLAGS = -module -avoid-version
-
-if ENABLE_WOLFSSL
-lmnsd_ossl_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS) $(WOLFSSL_CFLAGS)
-lmnsd_ossl_la_LIBADD = $(WOLFSSL_LIBS)
-else
+lmnsd_ossl_la_SOURCES = net_ossl.c net_ossl.h nsd_ossl.c nsd_ossl.h nsdsel_ossl.c  nsdsel_ossl.h
 lmnsd_ossl_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS) $(OPENSSL_CFLAGS)
+lmnsd_ossl_la_LDFLAGS = -module -avoid-version
 lmnsd_ossl_la_LIBADD = $(OPENSSL_LIBS)
 
-endif
 endif
 
 #
@@ -229,21 +227,10 @@ endif
 #
 if ENABLE_GNUTLS
 pkglib_LTLIBRARIES += lmnsd_gtls.la
-lmnsd_gtls_la_SOURCES = nsd_gtls.c nsd_gtls.h
+lmnsd_gtls_la_SOURCES = nsd_gtls.c nsd_gtls.h nsdsel_gtls.c  nsdsel_gtls.h
 lmnsd_gtls_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS) $(GNUTLS_CFLAGS)
 lmnsd_gtls_la_LDFLAGS = -module -avoid-version
 lmnsd_gtls_la_LIBADD = $(GNUTLS_LIBS)
-endif
-
-#
-# Mbed TLS netstream driver
-#
-if ENABLE_MBEDTLS
-pkglib_LTLIBRARIES += lmnsd_mbedtls.la
-lmnsd_mbedtls_la_SOURCES = nsd_mbedtls.c nsd_mbedtls.h
-lmnsd_mbedtls_la_CPPFLAGS = $(PTHREADS_CFLAGS) $(RSRT_CFLAGS) $(MBEDTLS_CFLAGS)
-lmnsd_mbedtls_la_LDFLAGS = -module -avoid-version
-lmnsd_mbedtls_la_LIBADD = $(MBEDTLS_LIBS)
 endif
 
 #

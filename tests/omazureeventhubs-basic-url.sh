@@ -75,7 +75,7 @@ injectmsg 1 $NUMMESSAGES
 
 wait_file_lines $RSYSLOG_OUT_LOG $NUMMESSAGESFULL 100
 
-# experimental: wait until kcat receives everything
+# experimental: wait until kafkacat receives everything
 timeoutend=$WAITTIMEOUT
 timecounter=0
 
