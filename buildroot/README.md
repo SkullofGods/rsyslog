@@ -46,9 +46,10 @@ parser — so no extra `--enable-*` is required (the rfc5424 parser preserves th
 `[wbos@<PEN> ...]` element in `%structured-data%` on its own). `mmpstrucdata`
 is optional and only needed to filter on individual SD fields.
 
-`RSYSLOG_SITE` / `RSYSLOG_VERSION` are left as in your tree (the internal
-mirror at `8.2502.0`). Build whatever rsyslog ref you like — the WBOS config and
-mmpstrucdata work on stock 8.2502.0 too.
+`RSYSLOG_SITE` points at the GitHub fork (`git@github.com:SkullofGods/rsyslog.git`)
+and `RSYSLOG_VERSION = myc_custom`. The WBOS config ships from `package/rsyslog/`
+(not the fetched source), so the exact rsyslog ref does not matter for behaviour —
+pin `RSYSLOG_VERSION` to a tag/sha on myc_custom for reproducible release builds.
 
 ## The WBOS log pipeline
 

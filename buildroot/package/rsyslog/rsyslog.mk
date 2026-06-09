@@ -4,11 +4,10 @@
 #
 ################################################################################
 
-# Build the WBOS fork branch. For reproducible release builds pin this to a tag
-# or commit sha on myc_custom instead of the moving branch name. (Make sure the
-# mirror in RSYSLOG_SITE actually tracks this ref.)
+# Build the WBOS fork branch from GitHub. For reproducible release builds pin
+# this to a tag or commit sha on myc_custom instead of the moving branch name.
 RSYSLOG_VERSION = myc_custom
-RSYSLOG_SITE = git@ssh.git.opk-bulat.ru:wbos/online-assets/rsyslog.git
+RSYSLOG_SITE = git@github.com:SkullofGods/rsyslog.git
 RSYSLOG_SITE_METHOD = git
 RSYSLOG_LICENSE = GPL-3.0, LGPL-3.0, Apache-2.0
 RSYSLOG_LICENSE_FILES = COPYING COPYING.LESSER COPYING.ASL20
