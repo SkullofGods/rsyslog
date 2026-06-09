@@ -1,0 +1,20 @@
+# ---------------------------------------------------------------------------
+# Alternative integration: keep MAINLINE Buildroot's rsyslog package, but point
+# it at the WBOS fork and add the modules the WBOS pipeline needs.
+#
+# Use this instead of package/rsyslog/ when your tree already enables the
+# mainline rsyslog (BR2_PACKAGE_RSYSLOG) and you do not want a second package
+# defining the same symbol. Copy the lines below into $(BR2_EXTERNAL)/local.mk
+# (or the top-level local.mk) and keep BR2_PACKAGE_RSYSLOG=y in menuconfig.
+# ---------------------------------------------------------------------------
+
+RSYSLOG_VERSION = myc_custom
+RSYSLOG_SITE = $(call github,SkullofGods,rsyslog,$(RSYSLOG_VERSION))
+RSYSLOG_SITE_METHOD = git
+
+# mmpstrucdata is upstream-default OFF; the WBOS rsyslog.d drop-in uses it.
+RSYSLOG_CONF_OPTS += --enable-mmpstrucdata
+
+# The fork carries a generated ./configure (no AM_MAINTAINER_MODE), so the
+# autoreconf mainline normally runs for a VCS checkout is unnecessary.
+RSYSLOG_AUTORECONF = NO

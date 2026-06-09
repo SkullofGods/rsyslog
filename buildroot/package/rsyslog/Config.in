@@ -1,0 +1,36 @@
+config BR2_PACKAGE_RSYSLOG
+	bool "rsyslog (WBOS fork)"
+	depends on BR2_USE_MMU            # fork()
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_LIBESTR
+	select BR2_PACKAGE_LIBFASTJSON
+	select BR2_PACKAGE_ZLIB
+	help
+	  rsyslog — the rocket-fast system for log processing, built from
+	  the WBOS fork (SkullofGods/rsyslog, branch myc_custom).
+
+	  Built with the modules the WBOS RFC 5424 log pipeline needs:
+	  imuxsock + imklog (default), the built-in rfc5424 parser, and
+	  mmpstrucdata (NOT in upstream defaults — enabled here) so the
+	  [wbos@<PEN> ...] structured-data element can be exploded into
+	  message properties.
+
+	  The actual routing config is shipped separately by
+	  rsyslog-wbos-config.
+
+	  NOTE: mainline Buildroot also defines BR2_PACKAGE_RSYSLOG. Use this
+	  package only in a BR2_EXTERNAL tree that does not also enable the
+	  mainline rsyslog, or override mainline instead (see
+	  package/rsyslog/local.mk.example).
+
+if BR2_PACKAGE_RSYSLOG
+
+config BR2_PACKAGE_RSYSLOG_VERSION
+	string "rsyslog git ref"
+	default "myc_custom"
+
+endif
+
+comment "rsyslog needs a toolchain w/ threads"
+	depends on BR2_USE_MMU
+	depends on !BR2_TOOLCHAIN_HAS_THREADS

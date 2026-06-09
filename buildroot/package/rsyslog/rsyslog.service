@@ -1,0 +1,19 @@
+[Unit]
+Description=System Logging Service (rsyslog, WBOS)
+Documentation=man:rsyslogd(8)
+After=network.target
+
+[Service]
+# Type=simple (not notify): this build does not link libsystemd, so rsyslogd
+# runs in the foreground with -n and imuxsock opens /dev/log itself rather than
+# relying on systemd socket activation.
+Type=simple
+ExecStartPre=/bin/mkdir -p /var/log/wbos
+ExecStart=/usr/sbin/rsyslogd -n -iNONE
+Restart=on-failure
+# rsyslog reopens its files on HUP (used by logrotate).
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+Alias=syslog.service

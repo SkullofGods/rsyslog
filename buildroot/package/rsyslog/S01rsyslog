@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Start/stop rsyslogd (WBOS).
+#
+
+DAEMON="rsyslogd"
+PIDFILE="/var/run/rsyslogd.pid"
+
+# -i: write pidfile. Config is /etc/rsyslog.conf (shipped by rsyslog-wbos-config).
+RSYSLOGD_ARGS="-i $PIDFILE"
+
+# shellcheck source=/dev/null
+[ -r "/etc/default/rsyslog" ] && . "/etc/default/rsyslog"
+
+start() {
+	printf 'Starting %s: ' "$DAEMON"
+	# /var/log/wbos is shipped by rsyslog-wbos-config; ensure it exists anyway.
+	mkdir -p /var/log/wbos
+	# shellcheck disable=SC2086
+	start-stop-daemon -S -q -p "$PIDFILE" -x "/usr/sbin/$DAEMON" -- $RSYSLOGD_ARGS
+	status=$?
+	if [ "$status" -eq 0 ]; then echo "OK"; else echo "FAIL"; fi
+	return "$status"
+}
+
+stop() {
+	printf 'Stopping %s: ' "$DAEMON"
+	start-stop-daemon -K -q -p "$PIDFILE"
+	status=$?
+	if [ "$status" -eq 0 ]; then echo "OK"; else echo "FAIL"; fi
+	return "$status"
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in
+	start|stop|restart)
+		"$1";;
+	reload)
+		# rsyslog reopens files / re-reads config on HUP
+		start-stop-daemon -K -s HUP -q -p "$PIDFILE";;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload}"
+		exit 1
+esac

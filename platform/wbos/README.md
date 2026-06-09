@@ -49,6 +49,10 @@ Shipped by the config-only package `buildroot/package/rsyslog-wbos-config`,
 which installs both files into the target rootfs and depends on `rsyslog`.
 Select `BR2_PACKAGE_RSYSLOG_WBOS_CONFIG=y` (it `select`s `BR2_PACKAGE_RSYSLOG`).
 
+The matching daemon package is `buildroot/package/rsyslog` (this fork, built
+with `--enable-mmpstrucdata`). See [`../../buildroot/README.md`](../../buildroot/README.md)
+for how the two packages fit together and the mainline-rsyslog caveat.
+
 Requires these rsyslog modules in the image: `imuxsock`, `pmrfc5424`,
 `mmpstrucdata` (the last only for SD field explosion; drop the
 `action(type="mmpstrucdata")` line if it is not built in).
