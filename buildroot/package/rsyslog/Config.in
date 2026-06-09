@@ -1,36 +1,34 @@
 config BR2_PACKAGE_RSYSLOG
-	bool "rsyslog (WBOS fork)"
-	depends on BR2_USE_MMU            # fork()
+	bool "rsyslog"
+	depends on BR2_USE_MMU # fork()
 	depends on BR2_TOOLCHAIN_HAS_THREADS
+	depends on BR2_USE_WCHAR
 	select BR2_PACKAGE_LIBESTR
 	select BR2_PACKAGE_LIBFASTJSON
+	select BR2_PACKAGE_LIBLOGGING
 	select BR2_PACKAGE_ZLIB
 	help
-	  rsyslog — the rocket-fast system for log processing, built from
-	  the WBOS fork (SkullofGods/rsyslog, branch myc_custom).
+	  Rsyslog is an enhanced multi-threaded syslogd. Built from the WBOS
+	  fork with the WBOS RFC 5424 receiver config installed and the
+	  mmpstrucdata module enabled, so the structured log stream from the
+	  WBOS daemons (asic_manager, config_manager, route_manager,
+	  route_server, flow_manager) is received on /dev/log and routed into
+	  /var/log/wbos/.
 
-	  Built with the modules the WBOS RFC 5424 log pipeline needs:
-	  imuxsock + imklog (default), the built-in rfc5424 parser, and
-	  mmpstrucdata (NOT in upstream defaults — enabled here) so the
-	  [wbos@<PEN> ...] structured-data element can be exploded into
-	  message properties.
-
-	  The actual routing config is shipped separately by
-	  rsyslog-wbos-config.
-
-	  NOTE: mainline Buildroot also defines BR2_PACKAGE_RSYSLOG. Use this
-	  package only in a BR2_EXTERNAL tree that does not also enable the
-	  mainline rsyslog, or override mainline instead (see
-	  package/rsyslog/local.mk.example).
+	  https://www.rsyslog.com/
 
 if BR2_PACKAGE_RSYSLOG
 
-config BR2_PACKAGE_RSYSLOG_VERSION
-	string "rsyslog git ref"
-	default "myc_custom"
+config BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS
+	bool "extra plugins"
+	help
+	  Build and install the full set of optional input/output/parser/
+	  modify plugins (imfile, impstats, omprog, mmjsonparse, ...) and the
+	  dependency-gated ones (gnutls, hiredis, mysql, ...). The WBOS log
+	  pipeline does not require these; mmpstrucdata is enabled regardless.
 
 endif
 
-comment "rsyslog needs a toolchain w/ threads"
+comment "rsyslog needs a toolchain w/ threads, wchar"
 	depends on BR2_USE_MMU
-	depends on !BR2_TOOLCHAIN_HAS_THREADS
+	depends on !BR2_TOOLCHAIN_HAS_THREADS || !BR2_USE_WCHAR

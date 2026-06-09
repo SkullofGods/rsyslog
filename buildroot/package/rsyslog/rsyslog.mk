@@ -1,46 +1,198 @@
 ################################################################################
 #
-# rsyslog (WBOS fork)
-#
-# Builds rsyslog from SkullofGods/rsyslog with the modules the WBOS RFC 5424
-# log pipeline relies on. The routing/config overlay is a separate package
-# (rsyslog-wbos-config) so this package installs only the daemon + init.
+# rsyslog
 #
 ################################################################################
 
-RSYSLOG_VERSION       ?= $(call qstrip,$(BR2_PACKAGE_RSYSLOG_VERSION))
-RSYSLOG_SITE           = $(call github,SkullofGods,rsyslog,$(RSYSLOG_VERSION))
-RSYSLOG_SITE_METHOD    = git
-RSYSLOG_GIT_SUBMODULES = NO
-
-RSYSLOG_LICENSE       = GPL-3.0+ (daemon), LGPL-3.0+ (runtime), Apache-2.0
+RSYSLOG_VERSION = 8.2502.0
+RSYSLOG_SITE = git@ssh.git.opk-bulat.ru:wbos/online-assets/rsyslog.git
+RSYSLOG_SITE_METHOD = git
+RSYSLOG_LICENSE = GPL-3.0, LGPL-3.0, Apache-2.0
 RSYSLOG_LICENSE_FILES = COPYING COPYING.LESSER COPYING.ASL20
+RSYSLOG_CPE_ID_VENDOR = rsyslog
+# rsyslog uses weak permissions for generating log files.
+# Ignoring this CVE as Buildroot normally doesn't have local users and a build
+# could customize the rsyslog.conf to be more restrictive ($FileCreateMode 0640)
+RSYSLOG_IGNORE_CVES += CVE-2015-3243
+RSYSLOG_DEPENDENCIES = zlib libestr liblogging libfastjson host-pkgconf
+RSYSLOG_CONF_ENV = ac_cv_prog_cc_c99='-std=c99'
 
-# libestr + libfastjson are mandatory (PKG_CHECK_MODULES); zlib enables gzip
-# output (omfile). host-pkgconf for the PKG_CHECK_MODULES probes.
-RSYSLOG_DEPENDENCIES = host-pkgconf libestr libfastjson zlib
+# [WBOS] mmpstrucdata is required by the WBOS rsyslog.d drop-in (it explodes the
+# [wbos@<PEN> ...] structured-data element). It is upstream-default OFF, so we
+# enable it in the base options regardless of the EXTRA_PLUGINS knob below.
+RSYSLOG_CONF_OPTS = --enable-mmpstrucdata
 
-# The committed tree carries a generated ./configure and there is no
-# AM_MAINTAINER_MODE, so no autoreconf is needed (and none is wanted — it would
-# pull host-autoconf/automake/libtool).
-RSYSLOG_AUTORECONF = NO
+ifeq ($(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),y)
+RSYSLOG_PLUGINS = imdiag imfile impstats imptcp \
+	mmanon mmaudit mmfields mmjsonparse mmsequence mmutf8fix \
+	mail omprog omruleset omstdout omuxsock \
+	pmaixforwardedfrom pmciscoios pmcisconames pmlastmsg pmsnare
+endif
 
-# imuxsock, imklog and the rfc5424 parser are on by default / built into the
-# core; mmpstrucdata is upstream-default OFF and must be requested explicitly.
-RSYSLOG_CONF_OPTS = \
-	--enable-mmpstrucdata \
-	--enable-klog \
-	--disable-testbench \
-	--disable-generate-man-pages
+ifeq ($(BR2_PACKAGE_LIBRELP)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += librelp
+RSYSLOG_PLUGINS += relp
+endif
 
-define RSYSLOG_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 0755 $(RSYSLOG_PKGDIR)/S01rsyslog \
-		$(TARGET_DIR)/etc/init.d/S01rsyslog
-endef
+RSYSLOG_CONF_OPTS += --disable-generate-man-pages \
+	$(foreach x,$(call qstrip,$(RSYSLOG_PLUGINS)),--enable-$(x))
+
+# Disable items requiring lognorm
+RSYSLOG_CONF_OPTS += \
+	--disable-mmkubernetes \
+	--disable-mmnormalize
+
+ifeq ($(BR2_PACKAGE_LIBCURL)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += libcurl
+RSYSLOG_CONF_OPTS += \
+	--enable-clickhouse \
+	--enable-elasticsearch \
+	--enable-fmhttp \
+	--enable-imdocker \
+	--enable-omhttp \
+	--enable-omhttpfs
+else
+RSYSLOG_CONF_OPTS += \
+	--disable-clickhouse \
+	--disable-elasticsearch \
+	--disable-fmhttp \
+	--disable-imdocker \
+	--disable-omhttp \
+	--disable-omhttpfs
+endif
+
+ifeq ($(BR2_PACKAGE_CIVETWEB_LIB)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += apr-util civetweb
+RSYSLOG_CONF_OPTS += --enable-imhttp
+else
+RSYSLOG_CONF_OPTS += --disable-imhttp
+endif
+
+ifeq ($(BR2_PACKAGE_CZMQ)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += czmq
+RSYSLOG_CONF_OPTS += --enable-imczmq --enable-omczmq
+else
+RSYSLOG_CONF_OPTS += --disable-imczmq --disable-omczmq
+endif
+
+ifeq ($(BR2_PACKAGE_GNUTLS)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += gnutls
+RSYSLOG_CONF_OPTS += --enable-gnutls
+else
+RSYSLOG_CONF_OPTS += --disable-gnutls
+endif
+
+ifeq ($(BR2_PACKAGE_HIREDIS)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += hiredis
+RSYSLOG_CONF_OPTS += --enable-omhiredis
+else
+RSYSLOG_CONF_OPTS += --disable-omhiredis
+endif
+
+ifeq ($(BR2_PACKAGE_LIBGCRYPT)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += libgcrypt
+RSYSLOG_CONF_ENV += LIBGCRYPT_CONFIG=$(STAGING_DIR)/usr/bin/libgcrypt-config
+RSYSLOG_CONF_OPTS += --enable-libgcrypt
+else
+RSYSLOG_CONF_OPTS += --disable-libgcrypt
+endif
+
+ifeq ($(BR2_PACKAGE_LIBMAXMINDDB)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += libmaxminddb
+RSYSLOG_CONF_OPTS += --enable-mmdblookup
+else
+RSYSLOG_CONF_OPTS += --disable-mmdblookup
+endif
+
+ifeq ($(BR2_PACKAGE_LIBPCAP)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += libpcap
+RSYSLOG_CONF_OPTS += --enable-impcap
+else
+RSYSLOG_CONF_OPTS += --disable-impcap
+endif
+
+ifeq ($(BR2_PACKAGE_MARIADB)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += mariadb
+RSYSLOG_CONF_OPTS += --enable-mysql
+RSYSLOG_CONF_ENV += ac_cv_prog_MYSQL_CONFIG=$(STAGING_DIR)/usr/bin/mysql_config
+else
+RSYSLOG_CONF_OPTS += --disable-mysql
+endif
+
+ifeq ($(BR2_PACKAGE_POSTGRESQL)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += postgresql
+RSYSLOG_CONF_OPTS += --enable-pgsql
+RSYSLOG_CONF_ENV += ac_cv_prog_PG_CONFIG=$(STAGING_DIR)/usr/bin/pg_config
+else
+RSYSLOG_CONF_OPTS += --disable-pgsql
+endif
+
+ifeq ($(BR2_PACKAGE_QPID_PROTON)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += qpid-proton
+RSYSLOG_CONF_OPTS += --enable-omamqp1
+else
+RSYSLOG_CONF_OPTS += --disable-omamqp1
+endif
+
+ifeq ($(BR2_PACKAGE_RABBITMQ_C)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += rabbitmq-c
+RSYSLOG_CONF_OPTS += --enable-omrabbitmq
+else
+RSYSLOG_CONF_OPTS += --disable-omrabbitmq
+endif
+
+ifeq ($(BR2_PACKAGE_UTIL_LINUX_LIBUUID)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_DEPENDENCIES += util-linux
+RSYSLOG_CONF_OPTS += --enable-uuid
+else
+RSYSLOG_CONF_OPTS += --disable-uuid
+endif
+
+ifeq ($(BR2_INIT_SYSTEMD)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_CONF_OPTS += \
+	--enable-imjournal \
+	--enable-omjournal \
+	--with-systemdsystemunitdir=/usr/lib/systemd/system
+RSYSLOG_DEPENDENCIES += systemd
+else
+RSYSLOG_CONF_OPTS += \
+	--disable-imjournal \
+	--disable-omjournal
+endif
+
+ifeq ($(BR2_PACKAGE_LIBDBI_DRIVERS)$(BR2_PACKAGE_RSYSLOG_EXTRA_PLUGINS),yy)
+RSYSLOG_CONF_OPTS += --enable-libdbi
+RSYSLOG_DEPENDENCIES += libdbi-drivers
+else
+RSYSLOG_CONF_OPTS += --disable-libdbi
+endif
 
 define RSYSLOG_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -D -m 0644 $(RSYSLOG_PKGDIR)/rsyslog.service \
+	$(INSTALL) -m 0644 -D package/rsyslog/rsyslog.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/rsyslog.service
 endef
+
+define RSYSLOG_INSTALL_INIT_SYSV
+	$(INSTALL) -m 0755 -D package/rsyslog/S01rsyslogd \
+		$(TARGET_DIR)/etc/init.d/S01rsyslogd
+endef
+
+# [WBOS] Install the WBOS RFC 5424 receiver config instead of the stock one.
+# The files ship in this package directory (not pulled from $(@D)), so the
+# config does not depend on which rsyslog ref is fetched. The main config wires
+# imuxsock (UseSpecialParser=off) + an rfc5424-first parser chain; the drop-in
+# routes the per-daemon stream into /var/log/wbos/<svc>.log; logrotate rotates
+# those files (rsyslog omfile does not self-rotate).
+define RSYSLOG_INSTALL_CONF
+	$(INSTALL) -m 0644 -D package/rsyslog/rsyslog.conf \
+		$(TARGET_DIR)/etc/rsyslog.conf
+	$(INSTALL) -m 0644 -D package/rsyslog/rsyslog.d/10-wbos-structured.conf \
+		$(TARGET_DIR)/etc/rsyslog.d/10-wbos-structured.conf
+	$(INSTALL) -m 0644 -D package/rsyslog/wbos.logrotate \
+		$(TARGET_DIR)/etc/logrotate.d/wbos
+	mkdir -p $(TARGET_DIR)/var/log/wbos
+endef
+
+RSYSLOG_POST_INSTALL_TARGET_HOOKS += RSYSLOG_INSTALL_CONF
 
 $(eval $(autotools-package))
