@@ -4,12 +4,18 @@
 #
 ################################################################################
 
-RSYSLOG_VERSION = 8.2502.0
+# Build the WBOS fork branch. For reproducible release builds pin this to a tag
+# or commit sha on myc_custom instead of the moving branch name. (Make sure the
+# mirror in RSYSLOG_SITE actually tracks this ref.)
+RSYSLOG_VERSION = myc_custom
 RSYSLOG_SITE = git@ssh.git.opk-bulat.ru:wbos/online-assets/rsyslog.git
 RSYSLOG_SITE_METHOD = git
 RSYSLOG_LICENSE = GPL-3.0, LGPL-3.0, Apache-2.0
 RSYSLOG_LICENSE_FILES = COPYING COPYING.LESSER COPYING.ASL20
 RSYSLOG_CPE_ID_VENDOR = rsyslog
+# VERSION is a git ref (myc_custom), not a number, so pin the CPE version
+# explicitly to keep CVE matching meaningful (the fork is based on 8.2502.0).
+RSYSLOG_CPE_ID_VERSION = 8.2502.0
 # rsyslog uses weak permissions for generating log files.
 # Ignoring this CVE as Buildroot normally doesn't have local users and a build
 # could customize the rsyslog.conf to be more restrictive ($FileCreateMode 0640)
