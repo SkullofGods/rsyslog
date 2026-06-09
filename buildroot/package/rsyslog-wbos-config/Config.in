@@ -1,0 +1,21 @@
+config BR2_PACKAGE_RSYSLOG_WBOS_CONFIG
+	bool "rsyslog-wbos-config"
+	select BR2_PACKAGE_RSYSLOG
+	help
+	  WBOS rsyslog configuration overlay.
+
+	  Installs an rsyslog main config and an /etc/rsyslog.d drop-in that
+	  receive the RFC 5424 structured log stream from the WBOS daemons
+	  (asic_manager, config_manager, route_manager, route_server,
+	  flow_manager) on /dev/log and route it, RFC 5424 preserved, into
+	  per-service files under /var/log/wbos/.
+
+	  Requires the imuxsock, pmrfc5424 and mmpstrucdata rsyslog modules.
+
+if BR2_PACKAGE_RSYSLOG_WBOS_CONFIG
+
+config BR2_PACKAGE_RSYSLOG_WBOS_CONFIG_VERSION
+	string "rsyslog-wbos-config git ref"
+	default "myc_custom"
+
+endif
