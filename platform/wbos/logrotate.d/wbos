@@ -1,0 +1,16 @@
+# Rotation for the WBOS per-service RFC 5424 logs written by rsyslog.
+# rsyslog's omfile does not rotate on its own; logrotate handles it and signals
+# rsyslog to reopen the files (HUP) after rotation.
+/var/log/wbos/*.log {
+    daily
+    rotate 7
+    size 100M
+    missingok
+    notifempty
+    compress
+    delaycompress
+    sharedscripts
+    postrotate
+        /bin/kill -HUP $(cat /var/run/rsyslogd.pid 2>/dev/null) 2>/dev/null || true
+    endscript
+}

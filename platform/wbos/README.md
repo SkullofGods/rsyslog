@@ -36,6 +36,7 @@ release — consistently in both the daemons and any SD-based filters here.
 |---|---|---|
 | `rsyslog.conf` | `/etc/rsyslog.conf` | base: imuxsock + RFC 5424 parser chain, RFC 5424 default on-disk format |
 | `rsyslog.d/10-wbos-structured.conf` | `/etc/rsyslog.d/10-wbos-structured.conf` | per-service split, combined stream, optional forward |
+| `logrotate.d/wbos` | `/etc/logrotate.d/wbos` | rotate `/var/log/wbos/*.log` (rsyslog omfile does not self-rotate) |
 
 The key detail that makes RFC 5424 survive ingestion: imuxsock is loaded with
 `SysSock.UseSpecialParser="off"` so the raw datagram reaches the parser chain,

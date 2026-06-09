@@ -21,6 +21,8 @@ define RSYSLOG_WBOS_CONFIG_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/etc/rsyslog.conf
 	$(INSTALL) -D -m 0644 $(@D)/platform/wbos/rsyslog.d/10-wbos-structured.conf \
 		$(TARGET_DIR)/etc/rsyslog.d/10-wbos-structured.conf
+	$(INSTALL) -D -m 0644 $(@D)/platform/wbos/logrotate.d/wbos \
+		$(TARGET_DIR)/etc/logrotate.d/wbos
 	mkdir -p $(TARGET_DIR)/var/log/wbos
 endef
 
